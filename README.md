@@ -11,10 +11,23 @@ A simple, big-screen round timer for local Pokémon TCG tournaments. Static HTML
 - Refresh-safe countdown based on actual deadlines, not accumulated ticks. State is saved locally and synchronized between same-origin browser tabs.
 - Self-hosted fonts; no third-party requests during use. Once loaded, the timer continues without a network connection. An initial load/reload requires access to the hosted site or the local server.
 - Kraken Cards branding: the store's official logo, blue/navy and gold palette, light controls, and a high-contrast dark TV display with the logo always visible. Store links open separately so they do not interrupt the timer.
+- Judge controls: break countdown, sound test and volume, custom round lengths, round-number corrections, a new-tournament reset, table-extension notes, and English / Slovak UI.
 
 ## Use it
 
 Choose BO1 or BO3, then **Start round**. Click **TV mode** for a huge fullscreen display and cast/mirror the laptop to your TV. Click **Next round** to prepare the following round; it does not start automatically.
+
+### Judge controls
+
+Open the **sliders icon** in the top right (accessible name **Judge controls**, or **Panel rozhodcu** in Slovak).
+
+- **Sound & language:** switch between English and Slovak, adjust volume from 0–100%, and use **Test sound**. Testing plays a preview even if alerts are muted, without changing the saved mute preference. The app cannot override the laptop/TV's own mute or volume.
+- **Round setup:** edit the round number at any time without changing the deadline. Before starting, choose a custom duration: BO1 minimum 30 minutes, BO3 minimum 50, maximum 180. Reset the round before changing an active round's length. Custom durations carry into subsequent rounds; clicking a format button restores that format's default.
+- **Break mode:** use the footer shortcut or judge controls to start a separate 1–120-minute countdown. Starting a break after a round has begun asks for confirmation, clears that round's extension notes, and prepares the next round. Starting a break on a ready round keeps that round number. Breaks support pause/resume and refresh recovery. At zero they stop: use **Back to round**, then start the match only on the judge's announcement. Nothing starts automatically.
+- **Table extensions:** record a table label and its **total** judge-granted extension (1–60 minutes). Adding the same table updates its total rather than adding more minutes. Notes can be shown or hidden on the timer/TV; the display shows up to four notes plus a count of additional entries. The judge controls list contains all notes. These are notes only—not per-table countdowns, turn tracking, or match-resolution logic. They never change the shared deadline. New rounds, round resets, format resets, and new tournaments clear the old notes.
+- **New tournament:** confirmation resets to round 1 and clears the round, break, and extension notes. The selected format/custom duration, language, volume, and mute preferences are kept.
+
+All timer state and preferences persist locally and synchronize between same-origin tabs/windows. For an operator screen on the laptop and an uncluttered timer on the TV, extend the desktop instead of mirroring, open the timer in two windows, and put only the TV window into TV mode. Refresh all windows after a site update. Synchronization does not extend to another device or browser profile.
 
 | Key | Action |
 | --- | --- |

@@ -180,6 +180,7 @@ test('TV overtime fits a 1366 × 768 display', async ({ page }) => {
 });
 
 test('multiple tabs synchronize start, pause and round changes', async ({ page, context }) => {
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now()) + 1000));
   const second = await context.newPage();
   await second.goto('/');
   await page.getByRole('button', { name: 'Start round' }).click();

@@ -9,8 +9,8 @@
     <link rel="icon" href="./brand/kraken-favicon.png" type="image/png" />
     <link rel="preload" href="./brand/kraken-cards-logo.webp" as="image" />
     <link rel="preload" href="./fonts/barlow-condensed-600.ttf" as="font" type="font/ttf" crossorigin />
-    <link rel="stylesheet" href="./styles.css" />
-    <script type="module" src="./app.js"></script>
+    <link rel="stylesheet" href="./styles.css?v=2" />
+    <script type="module" src="./app.js?v=2"></script>
   </head>
   <body>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -25,24 +25,26 @@
       <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></symbol>
     </svg>
 
     <div class="app-shell">
       <header class="masthead">
         <div class="brand">
-          <a class="brand-link" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store (opens in a new tab)"><img class="brand-logo" src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" fetchpriority="high" /></a>
-          <span class="brand-copy"><span class="brand-name">Pokémon TCG</span><span class="brand-caption">LOCAL ROUND TIMER</span></span>
+          <a class="brand-link" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store (opens in a new tab)" data-i18n-aria><img class="brand-logo" src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" fetchpriority="high" /></a>
+          <span class="brand-copy"><span class="brand-name">Pokémon TCG</span><span class="brand-caption" data-i18n>LOCAL ROUND TIMER</span></span>
         </div>
         <div class="header-actions">
           <span class="local-time" id="local-time" aria-hidden="true"></span>
           <span class="header-divider"></span>
           <button class="icon-button" id="sound-toggle" aria-label="Mute alerts" aria-pressed="true" title="Sound on · click to mute"><svg class="icon"><use href="#i-sound"/></svg></button>
-          <button class="button button-subtle tv-button" id="tv-toggle" title="TV mode (F)"><svg class="icon"><use href="#i-expand"/></svg><span>TV mode</span></button>
+          <button class="icon-button" id="settings-open" aria-label="Judge controls" title="Judge controls" data-i18n-aria data-i18n-title><svg class="icon"><use href="#i-settings"/></svg></button>
+          <button class="button button-subtle tv-button" id="tv-toggle" title="TV mode (F)" data-i18n-title><svg class="icon"><use href="#i-expand"/></svg><span data-i18n>TV mode</span></button>
         </div>
       </header>
 
       <main>
-        <section class="timer-stage" aria-label="Round timer">
+        <section class="timer-stage" aria-label="Round timer" data-i18n-aria>
           <div class="round-line">
             <span class="round-label" id="round-label">ROUND 01</span>
             <span class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-label">READY TO PLAY</span></span>
@@ -57,14 +59,14 @@
             <h1 id="stage-heading">Good games start here.</h1>
             <p id="stage-description">Find your opponent. Shuffle up. Make it a good round.</p>
           </div>
-          <div class="overtime-reminder" id="overtime-reminder" hidden><span>+3 TURNS</span><span>Finish your match within the overtime limit.</span></div>
+          <div class="overtime-reminder" id="overtime-reminder" hidden><span data-i18n>+3 TURNS</span><span data-i18n>Finish your match within the overtime limit.</span></div>
           <div class="sr-only" role="status" aria-live="polite" id="announcement"></div>
         </section>
 
-        <section class="control-panel" aria-label="Timer controls">
+        <section class="control-panel" aria-label="Timer controls" data-i18n-aria>
           <div class="format-control">
-            <span class="control-label">MATCH FORMAT</span>
-            <div class="format-picker" role="group" aria-label="Match format">
+            <span class="control-label" data-i18n>MATCH FORMAT</span>
+            <div class="format-picker" role="group" aria-label="Match format" data-i18n-aria>
               <button class="format-option selected" id="format-bo1" aria-pressed="true" data-format="bo1">BO1 <span>30 min</span></button>
               <button class="format-option" id="format-bo3" aria-pressed="false" data-format="bo3">BO3 <span>50 min</span></button>
             </div>
@@ -76,39 +78,70 @@
           <button class="button button-next" id="next-round"><span>Next round</span><svg class="icon"><use href="#i-arrow"/></svg></button>
         </section>
 
-        <div class="below-controls"><svg class="icon"><use href="#i-clock"/></svg><span>Time called? Overtime starts automatically. <strong>15 minutes · +3 turns</strong></span></div>
+        <div class="below-controls" id="round-footnote"><svg class="icon"><use href="#i-clock"/></svg><span><span data-i18n>Time called? Overtime starts automatically.</span> <strong data-i18n>15 minutes · +3 turns</strong></span></div>
+        <aside class="extensions-summary" id="extensions-summary" aria-label="Table extensions" data-i18n-aria hidden><span class="extensions-eyebrow" data-i18n>JUDGE-GRANTED EXTENSIONS</span><div id="extensions-chips"></div></aside>
       </main>
 
       <footer class="footer">
-        <a class="footer-note" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer"><span class="tiny-dot"></span>Kraken Cards. Your locals, on the clock.</a>
-        <div class="footer-right"><span class="shortcut-hint"><kbd>SPACE</kbd> pause <span class="hint-separator">/</span> <kbd>F</kbd> TV mode</span><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg>Timing rules</button></div>
+        <a class="footer-note" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer"><span class="tiny-dot"></span><span data-i18n>Kraken Cards. Your locals, on the clock.</span></a>
+        <div class="footer-right"><span class="shortcut-hint"><kbd>SPACE</kbd> <span data-i18n>pause</span> <span class="hint-separator">/</span> <kbd>F</kbd> <span data-i18n>TV mode</span></span><button class="text-button" id="break-open"><svg class="icon"><use href="#i-clock"/></svg><span data-i18n>Break mode</span></button><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg><span data-i18n>Timing rules</span></button></div>
       </footer>
     </div>
 
-    <a class="tv-brand" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store — TV branding (opens in a new tab)"><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" /></a>
-    <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> start / pause</span><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg>Exit TV mode <kbd>F</kbd></button></div>
+    <a class="tv-brand" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store — TV branding (opens in a new tab)" data-i18n-aria><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" /></a>
+    <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> <span data-i18n>start / pause</span></span><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg><span data-i18n>Exit TV mode</span> <kbd>F</kbd></button></div>
     <div class="toast" role="status" id="toast" hidden></div>
 
     <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
       <form method="dialog">
-        <span class="dialog-eyebrow">JUDGE'S TABLE</span>
+        <span class="dialog-eyebrow" data-i18n>JUDGE'S TABLE</span>
         <h2 id="confirm-title">Reset this round?</h2>
         <p id="confirm-description">This will clear the current timer.</p>
-        <div class="dialog-actions"><button class="button button-subtle" value="cancel" autofocus>Keep playing</button><button class="button button-primary" id="confirm-action" value="confirm">Reset round</button></div>
+        <div class="dialog-actions"><button class="button button-subtle" value="cancel" autofocus data-i18n>Keep playing</button><button class="button button-primary" id="confirm-action" value="confirm">Reset round</button></div>
       </form>
     </dialog>
 
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="dialog-header"><span class="dialog-eyebrow" data-i18n>JUDGE'S TABLE</span><button class="icon-button" id="settings-close" aria-label="Close judge controls" data-i18n-aria><svg class="icon"><use href="#i-close"/></svg></button></div>
+      <h2 id="settings-title" data-i18n>Judge controls</h2>
+      <p id="settings-status" class="settings-status" role="status" hidden></p>
+      <section class="settings-section">
+        <h3 data-i18n>Sound &amp; language</h3>
+        <div class="settings-grid"><div class="field"><label for="language" data-i18n>Language</label><select id="language"><option value="en">English</option><option value="sk">Slovenčina</option></select></div><button class="button button-subtle" id="test-sound"><svg class="icon"><use href="#i-sound"/></svg><span data-i18n>Test sound</span></button></div>
+        <div class="volume-field"><label for="volume" data-i18n>Volume</label><input type="range" id="volume" min="0" max="100" step="1" value="100" /><output id="volume-value" for="volume">100%</output></div>
+      </section>
+      <section class="settings-section">
+        <h3 data-i18n>Round setup</h3>
+        <form id="round-settings-form">
+          <div class="settings-grid"><div class="field"><label for="round-number" data-i18n>Round number</label><input id="round-number" type="number" min="1" max="999" step="1" required /></div><div class="field"><label for="round-minutes" data-i18n>Round length (minutes)</label><input id="round-minutes" type="number" min="30" max="180" step="1" required /></div></div>
+          <p class="field-help" id="round-length-help"></p><p class="field-help" data-i18n>Round number can be corrected without changing the clock.</p>
+          <button class="button button-subtle" type="submit" data-i18n>Save round settings</button>
+        </form>
+      </section>
+      <section class="settings-section" id="break-settings">
+        <h3 data-i18n>Break mode</h3><p class="field-help" data-i18n>A separate countdown between rounds. It never starts a match automatically.</p>
+        <form id="break-form" class="settings-grid"><div class="field"><label for="break-minutes" data-i18n>Break length (minutes)</label><input id="break-minutes" type="number" min="1" max="120" step="1" value="10" required /></div><button class="button button-subtle" type="submit" data-i18n>Start break</button></form>
+      </section>
+      <section class="settings-section">
+        <h3 data-i18n>Table extensions</h3><p class="field-help" data-i18n>Judge-granted totals for this round only. Notes do not change the shared clock or resolve matches.</p>
+        <form id="extension-form" class="extension-form"><div class="field"><label for="extension-table" data-i18n>Table</label><input id="extension-table" type="text" maxlength="20" required /></div><div class="field"><label for="extension-minutes" data-i18n>Total extension (minutes)</label><input id="extension-minutes" type="number" min="1" max="60" step="1" value="3" required /></div><button class="button button-subtle" type="submit" data-i18n>Add / update</button></form>
+        <label class="checkbox-field"><input id="show-extensions" type="checkbox" checked /><span data-i18n>Show extension notes on the display</span></label>
+        <p class="field-help" id="extensions-empty" data-i18n>No table extensions for this round.</p><ul class="extension-list" id="extension-list"></ul>
+      </section>
+      <div class="settings-reset"><button class="button button-subtle" id="new-tournament"><svg class="icon"><use href="#i-reset"/></svg><span data-i18n>New tournament</span></button></div>
+    </dialog>
+
     <dialog id="rules-dialog" aria-labelledby="rules-title">
-      <div class="dialog-header"><span class="dialog-eyebrow">A QUICK RULES CHECK</span><button class="icon-button" id="rules-close" aria-label="Close timing rules"><svg class="icon"><use href="#i-close"/></svg></button></div>
-      <h2 id="rules-title">On the clock.</h2>
-      <div class="rules-presets"><div><strong>BO1</strong><span>30 minutes</span></div><div><strong>BO3</strong><span>50 minutes</span></div><div><strong>Overtime</strong><span>15-minute limit</span></div></div>
-      <p>The presets use the minimum round lengths for Championship Series events. BO3 time is for the <strong>whole match</strong>, not each game.</p>
-      <h3>When time is called</h3>
-      <p>Finish the current turn, then play <strong>3 additional turns</strong>, starting with the opponent. If time is called during Pokémon Checkup, the next turn is turn 1.</p>
-      <p>The 15-minute overtime clock starts <strong>immediately and simultaneously for every table</strong>. It is a maximum, not extra time to use after the additional turns. Report results as soon as your match resolves.</p>
-      <p>Turns are tracked at each table, not on this shared clock. Individual judge-granted time extensions and Swiss / single-elimination tiebreakers must be handled by the judges.</p>
-      <a class="rules-source" href="https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tcg-tournament-handbook-en.pdf" target="_blank" rel="noopener noreferrer">Official Pokémon TCG Tournament Handbook ↗</a>
-      <p class="rules-footnote">Timing verified against the September 1, 2026 handbooks (§7.4.3; general handbook §5.5.7). Independent, unofficial tool. The Head Judge's rulings take precedence.</p>
+      <div class="dialog-header"><span class="dialog-eyebrow" data-i18n>A QUICK RULES CHECK</span><button class="icon-button" id="rules-close" aria-label="Close timing rules" data-i18n-aria><svg class="icon"><use href="#i-close"/></svg></button></div>
+      <h2 id="rules-title" data-i18n>On the clock.</h2>
+      <div class="rules-presets"><div><strong>BO1</strong><span data-i18n>30 minutes</span></div><div><strong>BO3</strong><span data-i18n>50 minutes</span></div><div><strong data-i18n>Overtime</strong><span data-i18n>15-minute limit</span></div></div>
+      <p data-i18n>The presets use the minimum round lengths for Championship Series events. BO3 time is for the <strong>whole match</strong>, not each game.</p>
+      <h3 data-i18n>When time is called</h3>
+      <p data-i18n>Finish the current turn, then play <strong>3 additional turns</strong>, starting with the opponent. If time is called during Pokémon Checkup, the next turn is turn 1.</p>
+      <p data-i18n>The 15-minute overtime clock starts <strong>immediately and simultaneously for every table</strong>. It is a maximum, not extra time to use after the additional turns. Report results as soon as your match resolves.</p>
+      <p data-i18n>Turns are tracked at each table, not on this shared clock. Individual judge-granted time extensions and Swiss / single-elimination tiebreakers must be handled by the judges.</p>
+      <a class="rules-source" href="https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tcg-tournament-handbook-en.pdf" target="_blank" rel="noopener noreferrer" data-i18n>Official Pokémon TCG Tournament Handbook ↗</a>
+      <p class="rules-footnote" data-i18n>Timing verified against the September 1, 2026 handbooks (§7.4.3; general handbook §5.5.7). Independent, unofficial tool. The Head Judge's rulings take precedence.</p>
     </dialog>
 
     <noscript><div class="noscript">Please enable JavaScript to use the round timer.</div></noscript>

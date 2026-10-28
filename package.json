@@ -6,7 +6,7 @@
   "description": "A simple, TV-friendly Pokémon TCG round timer.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "test": "node --test tests/timer.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

@@ -95,3 +95,16 @@ test('muting cancels a preview still waiting for audio decoding', async ({ page 
   await expect.poll(() => page.evaluate(() => window.decodedDuration || 0)).toBeGreaterThan(2);
   expect(await page.evaluate(() => window.audioEvents)).toEqual([]);
 });
+
+test('dedicated sound test previews while muted without changing alert preferences', async ({ page }) => {
+  await page.getByRole('button', { name: 'Mute alerts' }).click();
+  await page.getByRole('button', { name: 'Judge controls', exact: true }).click();
+  await page.getByLabel('Volume', { exact: true }).evaluate(input => { input.value = '35'; input.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.getByRole('button', { name: 'Test sound', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.audioEvents.filter(event => event.type === 'sample').length)).toBe(1);
+  await page.getByRole('button', { name: 'Close judge controls', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Enable alerts' })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Judge controls', exact: true }).click();
+  await expect(page.locator('#volume-value')).toHaveText('35%');
+});
