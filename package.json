@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-tcg-timer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A simple, TV-friendly Pokémon TCG round timer.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test tests/timer.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.64.1"
+  }
+}

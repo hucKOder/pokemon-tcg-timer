@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#151712" />
+    <meta name="description" content="A clean, big-screen Pokémon TCG timer for your locals. BO1, BO3, and automatic overtime. Made for the judge's table." />
+    <title>Pokémon TCG · Round timer</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="./fonts/barlow-condensed-600.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h6m6 0h6"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M16 5v14"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+      <symbol id="i-muted" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM16 9l6 6m0-6-6 6"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-11v1"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="masthead">
+        <a class="brand" href="./" aria-label="Pokémon TCG round timer home">
+          <span class="brand-mark"><svg class="icon"><use href="#i-ball"/></svg></span>
+          <span><span class="brand-name">Pokémon TCG</span><span class="brand-caption">THE LOCAL ROUND TIMER</span></span>
+        </a>
+        <div class="header-actions">
+          <span class="local-time" id="local-time" aria-hidden="true"></span>
+          <span class="header-divider"></span>
+          <button class="icon-button" id="sound-toggle" aria-label="Mute alerts" aria-pressed="true" title="Sound on · click to mute"><svg class="icon"><use href="#i-sound"/></svg></button>
+          <button class="button button-subtle tv-button" id="tv-toggle" title="TV mode (F)"><svg class="icon"><use href="#i-expand"/></svg><span>TV mode</span></button>
+        </div>
+      </header>
+
+      <main>
+        <section class="timer-stage" aria-label="Round timer">
+          <div class="round-line">
+            <span class="round-label" id="round-label">ROUND 01</span>
+            <span class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-label">READY TO PLAY</span></span>
+          </div>
+
+          <div class="time-display" id="time-display" role="timer" aria-label="30 minutes remaining" aria-live="off" tabindex="-1">30:00</div>
+
+          <div class="timeline" aria-hidden="true"><div class="timeline-fill" id="timeline-fill"></div></div>
+          <div class="time-meta"><span id="phase-label">ROUND TIME</span><span id="duration-label">30 MINUTES</span></div>
+
+          <div class="message-area">
+            <h1 id="stage-heading">Good games start here.</h1>
+            <p id="stage-description">Find your opponent. Shuffle up. Make it a good round.</p>
+          </div>
+          <div class="overtime-reminder" id="overtime-reminder" hidden><span>+3 TURNS</span><span>Finish your match within the overtime limit.</span></div>
+          <div class="sr-only" role="status" aria-live="polite" id="announcement"></div>
+        </section>
+
+        <section class="control-panel" aria-label="Timer controls">
+          <div class="format-control">
+            <span class="control-label">MATCH FORMAT</span>
+            <div class="format-picker" role="group" aria-label="Match format">
+              <button class="format-option selected" id="format-bo1" aria-pressed="true" data-format="bo1">BO1 <span>30 min</span></button>
+              <button class="format-option" id="format-bo3" aria-pressed="false" data-format="bo3">BO3 <span>50 min</span></button>
+            </div>
+          </div>
+          <div class="main-controls">
+            <button class="button button-primary" id="start-pause"><svg class="icon"><use href="#i-play"/></svg><span>Start round</span><kbd>↵</kbd></button>
+            <button class="icon-button reset-button" id="reset" aria-label="Reset round" title="Reset round (R)"><svg class="icon"><use href="#i-reset"/></svg></button>
+          </div>
+          <button class="button button-next" id="next-round"><span>Next round</span><svg class="icon"><use href="#i-arrow"/></svg></button>
+        </section>
+
+        <div class="below-controls"><svg class="icon"><use href="#i-clock"/></svg><span>Time called? Overtime starts automatically. <strong>15 minutes · +3 turns</strong></span></div>
+      </main>
+
+      <footer class="footer">
+        <span class="footer-note"><span class="tiny-dot"></span>Made for your locals. Ready for the big screen.</span>
+        <div class="footer-right"><span class="shortcut-hint"><kbd>SPACE</kbd> pause <span class="hint-separator">/</span> <kbd>F</kbd> TV mode</span><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg>Timing rules</button></div>
+      </footer>
+    </div>
+
+    <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> start / pause</span><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg>Exit TV mode <kbd>F</kbd></button></div>
+    <div class="toast" role="status" id="toast" hidden></div>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+      <form method="dialog">
+        <span class="dialog-eyebrow">JUDGE'S TABLE</span>
+        <h2 id="confirm-title">Reset this round?</h2>
+        <p id="confirm-description">This will clear the current timer.</p>
+        <div class="dialog-actions"><button class="button button-subtle" value="cancel" autofocus>Keep playing</button><button class="button button-primary" id="confirm-action" value="confirm">Reset round</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="rules-dialog" aria-labelledby="rules-title">
+      <div class="dialog-header"><span class="dialog-eyebrow">A QUICK RULES CHECK</span><button class="icon-button" id="rules-close" aria-label="Close timing rules"><svg class="icon"><use href="#i-close"/></svg></button></div>
+      <h2 id="rules-title">On the clock.</h2>
+      <div class="rules-presets"><div><strong>BO1</strong><span>30 minutes</span></div><div><strong>BO3</strong><span>50 minutes</span></div><div><strong>Overtime</strong><span>15-minute limit</span></div></div>
+      <p>The presets use the minimum round lengths for Championship Series events. BO3 time is for the <strong>whole match</strong>, not each game.</p>
+      <h3>When time is called</h3>
+      <p>Finish the current turn, then play <strong>3 additional turns</strong>, starting with the opponent. If time is called during Pokémon Checkup, the next turn is turn 1.</p>
+      <p>The 15-minute overtime clock starts <strong>immediately and simultaneously for every table</strong>. It is a maximum, not extra time to use after the additional turns. Report results as soon as your match resolves.</p>
+      <p>Turns are tracked at each table, not on this shared clock. Individual judge-granted time extensions and Swiss / single-elimination tiebreakers must be handled by the judges.</p>
+      <a class="rules-source" href="https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tcg-tournament-handbook-en.pdf" target="_blank" rel="noopener noreferrer">Official Pokémon TCG Tournament Handbook ↗</a>
+      <p class="rules-footnote">Timing verified against the September 1, 2026 handbooks (§7.4.3; general handbook §5.5.7). Independent, unofficial tool. The Head Judge's rulings take precedence.</p>
+    </dialog>
+
+    <noscript><div class="noscript">Please enable JavaScript to use the round timer.</div></noscript>
+  </body>
+</html>
