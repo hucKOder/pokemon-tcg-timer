@@ -7,6 +7,7 @@ A simple, big-screen round timer for local Pokémon TCG tournaments. Static HTML
 - **BO1:** 30 minutes. **BO3:** 50 minutes for the whole match.
 - Automatically enters **15-minute overtime**, with a reminder to finish the current turn and play **3 additional turns**. Each table tracks its own turns; the shared timer is a maximum, not permission to play beyond +3 turns.
 - TV mode, fullscreen, optional audible alerts, pause/resume, round counter and a screen wake lock where supported.
+- The classic Pokémon Red/Blue/Yellow **item-received jingle** plays at time called. A distinct descending chime marks the overtime limit. Toggle sound off and on to preview the jingle; muting also stops any currently playing alert.
 - Refresh-safe countdown based on actual deadlines, not accumulated ticks. State is saved locally and synchronized between same-origin browser tabs.
 - Self-hosted fonts; no third-party requests during use. Once loaded, the timer continues without a network connection. An initial load/reload requires access to the hosted site or the local server.
 - Kraken Cards branding: the store's official logo, blue/navy and gold palette, light controls, and a high-contrast dark TV display with the logo always visible. Store links open separately so they do not interrupt the timer.
@@ -23,6 +24,8 @@ Choose BO1 or BO3, then **Start round**. Click **TV mode** for a huge fullscreen
 | R | Reset (asks for confirmation during an active round) |
 
 Alerts sound at time called and the overtime limit, provided browser audio is unlocked by user interaction. Keep the laptop awake, avoid closing its lid, and check your TV's audio routing before an event. The site requests a screen wake lock, but the browser/OS can refuse it. Reloading a running timer restores the correct time; click the page after a reload to re-enable audio and wake lock.
+
+The round-end audio is loaded from this site and decoded after interaction, so it needs no third-party connection during the round. If loading or decoding fails, the original generated chime is used as a fallback. Sound asset attribution is in `site/sounds/README.md`.
 
 ### Rules
 

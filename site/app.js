@@ -2,6 +2,10 @@ import { FORMATS, OVERTIME_MS, newTimer, advance, remaining, toggleRunning, form
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
+// Cache the small local clip on load so alerts do not depend on a network at time called.
+const itemSoundData = fetch(new URL('./sounds/pokemon-item-received.mp3', import.meta.url))
+  .then((response) => response.ok ? response.arrayBuffer() : null)
+  .catch(() => null);
 const $ = (id) => document.getElementById(id);
 const elements = Object.fromEntries([
   'time-display', 'round-label', 'status-label', 'timeline-fill', 'phase-label',
@@ -16,6 +20,9 @@ function readStorage(key) {
 let state = restoreTimer(readStorage(STORAGE_KEY));
 let soundEnabled = readStorage(SOUND_KEY) !== 'off';
 let audio;
+let itemSoundBuffer;
+let soundPlayback = 0;
+const activeSounds = new Set();
 let wakeLock;
 let wakeRequest;
 let interacted = false;
@@ -47,11 +54,55 @@ function unlockAudio() {
   try {
     audio ??= new (window.AudioContext || window.webkitAudioContext)();
     if (audio.state === 'suspended') void audio.resume().catch(() => {});
+    void loadItemSound();
   } catch { /* Sound is optional on browsers without Web Audio. */ }
 }
 
-function chime(kind) {
-  if (!soundEnabled || !audio || audio.state !== 'running') return;
+function loadItemSound() {
+  itemSoundBuffer ??= itemSoundData
+    .then((data) => data ? audio.decodeAudioData(data) : null)
+    .catch(() => null);
+  return itemSoundBuffer;
+}
+
+function stopSounds() {
+  soundPlayback += 1;
+  for (const source of activeSounds) {
+    try { source.stop(); } catch { /* Already-ended sources need no further action. */ }
+  }
+  activeSounds.clear();
+}
+
+function connectSound(source, gain) {
+  source.connect(gain).connect(audio.destination);
+  activeSounds.add(source);
+  source.onended = () => {
+    source.disconnect();
+    gain.disconnect();
+    activeSounds.delete(source);
+  };
+}
+
+async function chime(kind) {
+  stopSounds();
+  if (!soundEnabled || !audio) return;
+  const playback = soundPlayback;
+  try {
+    if (audio.state === 'suspended') await audio.resume();
+    const buffer = kind === 'overtime' ? await loadItemSound() : null;
+    // Muting or a newer alert cancels playback that was waiting for decoding/resume.
+    if (!soundEnabled || playback !== soundPlayback || audio.state !== 'running') return;
+    if (buffer) {
+      const source = audio.createBufferSource();
+      const gain = audio.createGain();
+      source.buffer = buffer;
+      gain.gain.value = 0.65;
+      connectSound(source, gain);
+      source.start();
+      return;
+    }
+  } catch { /* Fall back to the generated alert if the clip cannot be played. */ }
+  if (!soundEnabled || playback !== soundPlayback || audio.state !== 'running') return;
   const notes = kind === 'overtime' ? [660, 660, 880] : [660, 520, 440];
   const start = audio.currentTime;
   notes.forEach((frequency, index) => {
@@ -63,10 +114,9 @@ function chime(kind) {
     gain.gain.setValueAtTime(0, at);
     gain.gain.linearRampToValueAtTime(0.22, at + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.001, at + 0.65);
-    oscillator.connect(gain).connect(audio.destination);
+    connectSound(oscillator, gain);
     oscillator.start(at);
     oscillator.stop(at + 0.7);
-    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
   });
 }
 
@@ -154,7 +204,7 @@ function tick() {
   if (next !== state) {
     state = next;
     persist();
-    chime(state.phase);
+    void chime(state.phase);
     announce(state.phase === 'overtime' ? 'Time called. Finish the current turn, then play three additional turns. The fifteen-minute overtime limit has started.' : 'Overtime limit reached. Call a judge for unresolved matches.');
     void syncWakeLock();
   }
@@ -213,7 +263,7 @@ function selectFormat(format) {
 function renderSound() {
   elements['sound-toggle'].setAttribute('aria-pressed', String(soundEnabled));
   elements['sound-toggle'].setAttribute('aria-label', soundEnabled ? 'Mute alerts' : 'Enable alerts');
-  elements['sound-toggle'].title = soundEnabled ? 'Sound on · click to mute' : 'Sound off · click to enable';
+  elements['sound-toggle'].title = soundEnabled ? 'Sound on · Pokémon item-received alert · click to mute' : 'Sound off · click to enable and preview';
   elements['sound-toggle'].querySelector('use').setAttribute('href', soundEnabled ? '#i-sound' : '#i-muted');
 }
 
@@ -254,8 +304,9 @@ elements['sound-toggle'].addEventListener('click', () => {
   try { localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off'); } catch { /* Optional preference. */ }
   unlockAudio();
   renderSound();
-  if (soundEnabled) chime('overtime');
-  toast(soundEnabled ? 'Sound on. Alerts play at time called and the overtime limit.' : 'Sound off. Visual alerts remain on.');
+  if (soundEnabled) void chime('overtime');
+  else stopSounds();
+  toast(soundEnabled ? 'Sound on. Pokémon item-received jingle at time called; a separate alert at the overtime limit.' : 'Sound off. Visual alerts remain on.');
 });
 
 document.addEventListener('keydown', (event) => {
@@ -289,6 +340,7 @@ window.addEventListener('storage', (event) => {
     void syncWakeLock();
   } else if (event.key === SOUND_KEY) {
     soundEnabled = event.newValue !== 'off';
+    if (!soundEnabled) stopSounds();
     renderSound();
   }
 });
