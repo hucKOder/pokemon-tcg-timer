@@ -92,6 +92,29 @@ test('TV mode hides controls and Space operates the timer rather than exiting TV
   await expect(page.locator('.control-panel')).toBeVisible();
 });
 
+test('official Kraken Cards logo loads locally and stays visible in TV mode', async ({ page }) => {
+  const storeLink = page.getByRole('link', { name: 'Kraken Cards store (opens in a new tab)', exact: true });
+  await expect(storeLink).toHaveAttribute('href', 'https://krakencards.eu/');
+  await expect(storeLink).toHaveAttribute('target', '_blank');
+  const logo = page.getByRole('img', { name: 'Kraken Cards', exact: true });
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveJSProperty('naturalWidth', 709);
+  await expect(logo).toHaveAttribute('src', './brand/kraken-cards-logo.webp');
+  await expect(page).toHaveTitle(/Kraken Cards/);
+  await page.keyboard.press('f');
+  await expect(page.locator('.tv-brand')).toBeVisible();
+  await expect(page.getByRole('timer')).toHaveCSS('outline-style', 'none');
+  await expect(page.getByRole('img', { name: 'Kraken Cards', exact: true })).toHaveJSProperty('naturalWidth', 709);
+  await page.screenshot({ path: '/tmp/opencode/timer-kraken-tv.png' });
+  await page.keyboard.press('Space');
+  await page.clock.fastForward(30 * 60000);
+  await expect(page.locator('.tv-brand')).toBeVisible();
+  await page.screenshot({ path: '/tmp/opencode/timer-kraken-tv-overtime.png' });
+  await page.keyboard.press('f');
+  await expect(storeLink).toBeVisible();
+  await expect(page.locator('.tv-brand')).not.toBeVisible();
+});
+
 test('rules are accessible and explain table-specific turns and extensions', async ({ page }) => {
   await page.getByRole('button', { name: 'Timing rules' }).click();
   const dialog = page.getByRole('dialog');

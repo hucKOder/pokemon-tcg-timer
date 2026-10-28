@@ -3,17 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#151712" />
-    <meta name="description" content="A clean, big-screen Pokémon TCG timer for your locals. BO1, BO3, and automatic overtime. Made for the judge's table." />
-    <title>Pokémon TCG · Round timer</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f8faff" />
+    <meta name="description" content="The Kraken Cards Pokémon TCG round timer. BO1, BO3, and automatic overtime, made for our locals and the big screen." />
+    <title>Kraken Cards · Pokémon TCG round timer</title>
+    <link rel="icon" href="./brand/kraken-favicon.png" type="image/png" />
+    <link rel="preload" href="./brand/kraken-cards-logo.webp" as="image" />
     <link rel="preload" href="./fonts/barlow-condensed-600.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./app.js"></script>
   </head>
   <body>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h6m6 0h6"/><circle cx="12" cy="12" r="3"/></symbol>
       <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z"/></symbol>
       <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M16 5v14"/></symbol>
       <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></symbol>
@@ -29,10 +29,10 @@
 
     <div class="app-shell">
       <header class="masthead">
-        <a class="brand" href="./" aria-label="Pokémon TCG round timer home">
-          <span class="brand-mark"><svg class="icon"><use href="#i-ball"/></svg></span>
-          <span><span class="brand-name">Pokémon TCG</span><span class="brand-caption">THE LOCAL ROUND TIMER</span></span>
-        </a>
+        <div class="brand">
+          <a class="brand-link" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store (opens in a new tab)"><img class="brand-logo" src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" fetchpriority="high" /></a>
+          <span class="brand-copy"><span class="brand-name">Pokémon TCG</span><span class="brand-caption">LOCAL ROUND TIMER</span></span>
+        </div>
         <div class="header-actions">
           <span class="local-time" id="local-time" aria-hidden="true"></span>
           <span class="header-divider"></span>
@@ -80,11 +80,12 @@
       </main>
 
       <footer class="footer">
-        <span class="footer-note"><span class="tiny-dot"></span>Made for your locals. Ready for the big screen.</span>
+        <a class="footer-note" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer"><span class="tiny-dot"></span>Kraken Cards. Your locals, on the clock.</a>
         <div class="footer-right"><span class="shortcut-hint"><kbd>SPACE</kbd> pause <span class="hint-separator">/</span> <kbd>F</kbd> TV mode</span><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg>Timing rules</button></div>
       </footer>
     </div>
 
+    <a class="tv-brand" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store — TV branding (opens in a new tab)"><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" /></a>
     <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> start / pause</span><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg>Exit TV mode <kbd>F</kbd></button></div>
     <div class="toast" role="status" id="toast" hidden></div>
 

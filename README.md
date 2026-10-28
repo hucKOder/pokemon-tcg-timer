@@ -1,4 +1,4 @@
-# Pokémon TCG · Round timer
+# Kraken Cards · Pokémon TCG round timer
 
 A simple, big-screen round timer for local Pokémon TCG tournaments. Static HTML, CSS and JavaScript, with no runtime dependencies, accounts, analytics or remote services.
 
@@ -9,6 +9,7 @@ A simple, big-screen round timer for local Pokémon TCG tournaments. Static HTML
 - TV mode, fullscreen, optional audible alerts, pause/resume, round counter and a screen wake lock where supported.
 - Refresh-safe countdown based on actual deadlines, not accumulated ticks. State is saved locally and synchronized between same-origin browser tabs.
 - Self-hosted fonts; no third-party requests during use. Once loaded, the timer continues without a network connection. An initial load/reload requires access to the hosted site or the local server.
+- Kraken Cards branding: the store's official logo, blue/navy and gold palette, light controls, and a high-contrast dark TV display with the logo always visible. Store links open separately so they do not interrupt the timer.
 
 ## Use it
 
@@ -56,3 +57,5 @@ Browser tests use `/usr/bin/chromium` when available. Otherwise install Playwrig
 The GitHub Actions workflow tests the timer model, then publishes `site/` to GitHub Pages on every push to `main`. Select **GitHub Actions** under the repository's **Settings → Pages → Source**.
 
 Fonts: Barlow Condensed by Jeremy Tribby and DM Sans by its contributors, both under the SIL Open Font License. License texts are in `site/fonts/`.
+
+The Kraken Cards logo belongs to the store and is included at the store owner's request. Asset source and optimization details are in `site/brand/README.md`.

@@ -100,7 +100,7 @@ function render(now = Date.now()) {
     elements['time-display'].setAttribute('aria-label', `${minutes} minutes ${seconds} seconds remaining`);
     lastDisplay = display;
   }
-  document.title = `${display} · ${state.phase === 'overtime' ? 'Overtime' : 'Round ' + state.round} · Pokémon TCG`;
+  document.title = `${display} · ${state.phase === 'overtime' ? 'Overtime' : 'Round ' + state.round} · Pokémon TCG · Kraken Cards`;
   const total = state.phase === 'round' ? FORMATS[state.format].minutes * 60000 : OVERTIME_MS;
   elements['timeline-fill'].style.transform = `scaleX(${Math.min(1, ms / total)})`;
   document.body.dataset.warning = String(state.phase === 'round' && state.started && ms <= 5 * 60000);
