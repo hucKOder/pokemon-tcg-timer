@@ -97,3 +97,15 @@ test('English and Slovak messages interpolate without interpreting user HTML', (
   assert.equal(translate('en', 'Table {table}: +{minutes} min', { table: '<img>', minutes: 3 }), 'Table <img>: +3 min');
   assert.equal(translate('sk', 'Start round'), 'Spustiť kolo');
 });
+
+test('Slovak messages are direct and extension counts use natural agreement', () => {
+  assert.equal(translate('sk', 'Good games start here.'), 'Kolo je pripravené.');
+  assert.equal(translate('sk', 'Round in progress. Good luck, Trainers.'), 'Kolo prebieha.');
+  assert.equal(translate('sk', 'That’s time. Thank you, Trainers.'), 'Nadstavenie sa skončilo.');
+  assert.equal(translate('en', 'Good games start here.'), 'Good games start here.');
+  assert.equal(translate('sk', '{minutes} MINUTES', { minutes: 1 }), '1 MIN');
+  for (const count of [1, 2, 4]) {
+    assert.equal(translate('sk', '+{count} more · ask a judge', { count }), `+${count} ďalšie · podrobnosti u rozhodcu`);
+  }
+  assert.equal(translate('sk', '+{count} more · ask a judge', { count: 5 }), '+5 ďalších · podrobnosti u rozhodcu');
+});

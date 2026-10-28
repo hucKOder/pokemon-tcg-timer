@@ -1,6 +1,6 @@
 import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, remaining, toggleRunning, formatTime, restoreTimer } from './timer.js?v=2';
 import { restorePreferences } from './preferences.js?v=2';
-import { translate } from './i18n.js?v=2';
+import { translate } from './i18n.js?v=3';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';

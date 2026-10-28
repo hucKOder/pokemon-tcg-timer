@@ -142,12 +142,12 @@ test('Slovak translates controls, break instructions and rules, and survives rel
   await page.reload();
   await expect(page.getByRole('button', { name: 'Spustiť kolo' })).toBeVisible();
   await page.getByRole('button', { name: 'Časové pravidlá', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Pravidlá času.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Časové pravidlá', exact: true })).toBeVisible();
   await expect(page.locator('#rules-dialog')).toContainText('3 ďalšie ťahy');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Prestávka', exact: true }).click();
   await page.getByRole('button', { name: 'Spustiť prestávku', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Ďalšie kolo sa začína o…' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Do začiatku ďalšieho kola zostáva…' })).toBeVisible();
   await page.clock.fastForward(10 * 60000);
   await expect(page.locator('#status-label')).toHaveText('PRESTÁVKA SKONČILA');
 });
@@ -217,4 +217,23 @@ test('small-screen Slovak controls and settings fit horizontally', async ({ page
   expect(await page.locator('#settings-dialog').evaluate(dialog => dialog.scrollWidth <= dialog.clientWidth)).toBe(true);
   await page.getByRole('button', { name: 'Zavrieť panel rozhodcu', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('Slovak display messages use neutral tournament wording throughout a round', async ({ page }) => {
+  await openSettings(page);
+  await page.getByLabel('Language', { exact: true }).selectOption('sk');
+  await page.getByRole('button', { name: 'Zavrieť panel rozhodcu', exact: true }).click();
+  await expect(page.locator('#stage-heading')).toHaveText('Kolo je pripravené.');
+  await expect(page.locator('#stage-description')).toHaveText('Pripravte si balíčky a počkajte na pokyn rozhodcu.');
+  await page.getByRole('button', { name: 'Spustiť kolo' }).click();
+  await expect(page.locator('#stage-heading')).toHaveText('Kolo prebieha.');
+  await page.getByRole('button', { name: 'Pozastaviť čas' }).click();
+  await expect(page.locator('#stage-heading')).toHaveText('Časomiera je pozastavená.');
+  await page.getByRole('button', { name: /^Pokračovať/ }).click();
+  await page.clock.fastForward(30 * 60000);
+  await expect(page.locator('#stage-heading')).toHaveText('Dokončite aktuálny ťah, potom odohrajte 3 ďalšie ťahy.');
+  await expect(page.locator('#stage-description')).toHaveText('Po skončení zápasu nahláste výsledok.');
+  await page.clock.fastForward(15 * 60000);
+  await expect(page.locator('#stage-heading')).toHaveText('Nadstavenie sa skončilo.');
+  await expect(page.locator('#stage-description')).toHaveText('Ak váš zápas ešte neskončil, privolajte rozhodcu.');
 });
