@@ -29,12 +29,42 @@ Open the **sliders icon** in the top right (accessible name **Judge controls**, 
 
 All timer state and preferences persist locally and synchronize between same-origin tabs/windows. For an operator screen on the laptop and an uncluttered timer on the TV, extend the desktop instead of mirroring, open the timer in two windows, and put only the TV window into TV mode. Refresh all windows after a site update. Synchronization does not extend to another device or browser profile.
 
+### TOM pairings and standings on the TV
+
+1. Generate pairings in TOM and **save the tournament**.
+2. Open **Judge controls → TOM pairings & standings → Import TOM file (.tdf)** and choose that saved file.
+3. Select the round / division (defaults to the last available round in the file), then click **Show pairings** for the fullscreen TV view.
+4. Six tables are shown per page. Larger rounds rotate every 12 seconds; use the arrows or pause rotation as needed. **P** switches between pairings and timer; **← / →** change pages. Starting/resuming the timer in that window returns to the clock.
+5. **Save and re-import each round**, including after any pairing correction. The browser cannot watch TOM automatically. You can choose the same file again.
+
+For standings, choose **Standings division / group → Show standings**. Columns are **Rank, Player, W–L–T, Points, Op Win %, Op Op Win %**. Rank and name come from TOM; ties keep TOM's order and unranked players show **—**. The other columns are **calculated Swiss estimates from the saved match results**, not percentages exported by TOM. Calculations never reorder TOM's ranks. Dropped/unfinished players are a separate group when present. **S** switches standings/timer, **P** switches pairings/timer, and the TV toolbar lets you move directly between views. Standings use the same six-row pages and optional 12-second rotation.
+
+**TOM may only export rankings when the event ends**, and may omit them for combined age divisions. If no rankings are saved, the view explains this instead of inventing ranking order. The selected pairing round does **not** change the saved standings into historical round-by-round standings: statistics use all saved Swiss results. **Re-import the .tdf after updating the app** to populate the new columns; old rank-only imports show **—**. Files containing standings but no paired rounds are supported, with unavailable statistics shown as **—**.
+
+Calculation details ([RK9's TCG explanation](https://rk9.gg/article/20210525-all-about-tiebreakers-in-the-pokemon-tcg), [General Tournament Rules Handbook §5.3](https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tournament-rules-handbook-en.pdf)):
+
+- Only TOM Swiss rounds (`type="2"`) are used, never top-cut matches. Supported outcomes: player 1 win (`1`), player 2 win (`2`), draw (`3`), double loss (`10`), pending (`0`). Unknown/missing result codes make that player's statistics unavailable rather than being guessed; unavailable opponent data propagates to the relevant percentages.
+- Points are 3 per win and 1 per tie. Completed random byes count as wins/points, but are excluded from resistance wins, rounds played, and opponent lists. Bye and pending counts appear beneath the record when applicable.
+- Resistance win rates use wins plus half a tie, with a 25% floor and a 75% ceiling for players in TOM's `dnf` groups (100% otherwise). Completed Swiss scopes use the scope's round count minus byes; dropped players use rounds actually played. Partially reported scopes use recorded games only so pending matches are not treated as losses.
+- Op Win % averages opponents' resistance win rates. Op Op Win % averages opponents' Op Win %. A player with no eligible opponents shows **—**, not 0%. Arithmetic uses full precision, with percentages rounded to two decimals only for display.
+
+**Verify official figures in TOM.** Reconstruction can differ due to rounding, late-entry/penalty handling, incomplete result/drop information, or future TOM formats/rule changes. The TV explicitly labels the statistics as calculated. This is not a replacement for TOM's standings or tiebreaker decisions.
+
+Importing or selecting a pairing round **never changes the timer's round, duration, or running state**. If the displayed pairing round differs from the timer round, a warning appears. Review the selection before displaying it, especially when opening a completed tournament.
+
+This is a **local-only display**, not online pairings for players' phones. The XML is parsed in your browser; nothing is uploaded or committed to GitHub. Only tournament title, division/round, table numbers, display names, saved ranks/standings groups, calculated statistical summaries, and import time are saved in this browser's local storage, and synchronized to other windows on the same origin/profile. Player IDs, birth dates, organizer details, individual match results, and the source file are not retained. Use **Clear TOM import** (or confirm **New tournament**) to erase both saved pairings and standings. Browser storage restrictions may prevent persistence/synchronization, but importing still works in the current tab.
+
+For an extended TV desktop, import/select on the laptop window, then press **P** for pairings or **S** for standings in the TV window. Re-imports and selections update both windows; which view is displayed and page rotation are per-window. No network is needed for re-imports once the site is loaded. The importer supports TOM's XML `.tdf` layout (checked against TOM 1.86), including separate division pods and unopposed players; unfamiliar/malformed files are rejected rather than replacing a valid import. It does not generate pairings, assign rankings, or change match results. Maximum file size: 5 MB.
+
 | Key | Action |
 | --- | --- |
 | Space / Enter | Start, pause or resume (when not focused on another control) |
 | F | Toggle TV mode |
 | Escape | Exit fullscreen / TV mode, or close a dialog |
 | R | Reset (asks for confirmation during an active round) |
+| P | Switch timer / imported pairings |
+| S | Switch timer / imported standings |
+| ← / → | Previous / next page while viewing pairings or standings |
 
 Alerts sound at time called and the overtime limit, provided browser audio is unlocked by user interaction. Keep the laptop awake, avoid closing its lid, and check your TV's audio routing before an event. The site requests a screen wake lock, but the browser/OS can refuse it. Reloading a running timer restores the correct time; click the page after a reload to re-enable audio and wake lock.
 

@@ -1,10 +1,12 @@
 import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, remaining, toggleRunning, formatTime, restoreTimer } from './timer.js?v=2';
 import { restorePreferences } from './preferences.js?v=2';
-import { translate } from './i18n.js?v=3';
+import { translate } from './i18n.js?v=6';
+import { MAX_TOM_BYTES, PAIRINGS_PER_PAGE, ROTATION_MS, parseTom, restorePairings, pairingPage } from './pairings.js?v=3';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
 const PREFERENCES_KEY = 'locals-tcg-preferences-v1';
+const PAIRINGS_KEY = 'locals-tcg-pairings-v1';
 // Cache the small local clip on load so alerts do not depend on a network at time called.
 const itemSoundData = fetch(new URL('./sounds/pokemon-item-received.mp3', import.meta.url))
   .then((response) => response.ok ? response.arrayBuffer() : null)
@@ -23,6 +25,13 @@ function readStorage(key) {
 let state = restoreTimer(readStorage(STORAGE_KEY));
 let soundEnabled = readStorage(SOUND_KEY) !== 'off';
 let preferences = restorePreferences(readStorage(PREFERENCES_KEY));
+let pairings = restorePairings(readStorage(PAIRINGS_KEY));
+let pairingsVisible = false;
+let tomView = 'pairings';
+let pairingsPage = 0;
+let pairingsRotating = true;
+let pairingsRotation;
+let importSequence = 0;
 const t = (source, values) => translate(preferences.language, source, values);
 let audio;
 let masterVolume;
@@ -70,7 +79,199 @@ function applyPreferences() {
   lastDisplay = '';
   renderSound();
   renderLocalTime();
+  renderPairings();
   tick();
+}
+
+function selectedPairings() {
+  return pairings?.data.rounds.find((round) => round.key === pairings.selectedKey);
+}
+
+function selectedStandings() {
+  return pairings?.data.standings.find((group) => group.key === pairings.selectedStandingsKey);
+}
+
+function currentTomEntries() {
+  return (tomView === 'standings' ? selectedStandings()?.entries : selectedPairings()?.matches) || [];
+}
+
+function divisionLabel(code) {
+  const divisions = { '0': 'Juniors', '1': 'Seniors', '2': 'Masters' };
+  return Object.hasOwn(divisions, code) ? t(divisions[code]) : t('Division {division}', { division: code });
+}
+
+function pairingLabel(round) {
+  return `${t('Round {round}', { round: round.number })} · ${divisionLabel(round.division)}`;
+}
+
+function standingsLabel(group) {
+  const suffix = group.type === 'finished' ? '' : ` · ${group.type === 'dnf' ? t('Dropped / unfinished') : t('Group {group}', { group: group.type })}`;
+  return `${t('Standings')} · ${divisionLabel(group.division)}${suffix}`;
+}
+
+function renderTomViewButtons() {
+  $('tv-pairings').textContent = t(pairingsVisible && tomView === 'pairings' ? 'Show timer' : 'Show pairings');
+  $('tv-standings').textContent = t(pairingsVisible && tomView === 'standings' ? 'Show timer' : 'Show standings');
+}
+
+function persistPairings() {
+  try {
+    if (pairings) localStorage.setItem(PAIRINGS_KEY, JSON.stringify(pairings));
+    else localStorage.removeItem(PAIRINGS_KEY);
+  } catch { toast(t('TOM views work in this tab, but browser storage is unavailable.')); }
+}
+
+function restartPairingsRotation() {
+  clearInterval(pairingsRotation);
+  if (pairingsVisible && pairingsRotating && currentTomEntries().length > PAIRINGS_PER_PAGE) {
+    pairingsRotation = setInterval(() => {
+      if (document.visibilityState !== 'visible' || document.querySelector('dialog[open]')) return;
+      pairingsPage += 1;
+      renderPairingsPage();
+    }, ROTATION_MS);
+  }
+}
+
+function setPairingsVisible(visible) {
+  pairingsVisible = Boolean(visible && pairings);
+  document.body.classList.toggle('show-pairings', pairingsVisible);
+  $('pairings-stage').hidden = !pairingsVisible;
+  renderTomViewButtons();
+  restartPairingsRotation();
+  if (pairingsVisible) {
+    renderPairingsPage();
+    $('pairings-heading').focus({ preventScroll: true });
+  } else if (document.activeElement?.closest('#pairings-stage')) elements['time-display'].focus({ preventScroll: true });
+  void syncWakeLock();
+}
+
+function renderPairingsPage() {
+  if (!pairings) return;
+  const isStandings = tomView === 'standings';
+  const round = selectedPairings();
+  const group = selectedStandings();
+  const entries = currentTomEntries();
+  const page = pairingPage(entries, pairingsPage);
+  pairingsPage = page.index;
+  $('tom-view-eyebrow').textContent = t(isStandings ? 'TOM RANKS · CALCULATED SWISS STATS' : 'TOM · LOCAL PAIRINGS');
+  $('pairings-heading').textContent = isStandings ? (group ? standingsLabel(group) : t('Standings')) : (round ? pairingLabel(round) : t('Pairings'));
+  $('pairings-event').textContent = pairings.data.name;
+  $('pairings-warning').hidden = isStandings || !round || round.number === state.round;
+  $('pairings-warning').textContent = round ? t('Timer: round {round}. Displayed pairings: round {pairingRound}.', { round: state.round, pairingRound: round.number }) : '';
+  $('tom-table').hidden = !entries.length;
+  $('tom-table').classList.toggle('standings-table', isStandings);
+  $('pairings-navigation').hidden = !entries.length;
+  $('tom-empty').hidden = entries.length > 0;
+  $('tom-empty').textContent = t(isStandings ? 'This TOM file has no saved rankings. TOM may only export rankings when the tournament ends. Ranking order is never calculated here.' : 'No pairings are saved in this TOM file.');
+  $('standings-note').hidden = !isStandings || !entries.length;
+  $('tom-table-caption').textContent = t(isStandings ? 'TOM ranks with calculated Swiss statistics' : 'Pairings from the imported TOM file');
+  $('tom-column-first').textContent = t(isStandings ? 'Rank' : 'Table');
+  $('tom-column-second').textContent = t(isStandings ? 'Player' : 'Player 1');
+  $('tom-column-third').textContent = t(isStandings ? 'W–L–T' : 'Player 2');
+  $('tom-column-third').title = isStandings ? t('Wins–losses–ties. Byes count as wins; pending matches are excluded.') : '';
+  for (const [id, label, title] of [
+    ['standings-column-points', 'Points', 'Calculated match points: 3 per win, 1 per tie.'],
+    ['standings-column-op-win', 'Op Win %', 'Calculated opponents’ win percentage. Random byes are excluded from resistance.'],
+    ['standings-column-op-op-win', 'Op Op Win %', 'Calculated opponents’ opponents’ win percentage.'],
+  ]) {
+    $(id).hidden = !isStandings;
+    $(id).textContent = t(label);
+    $(id).title = t(title);
+  }
+  $('pairings-previous').setAttribute('aria-label', t(isStandings ? 'Previous standings page' : 'Previous pairings page'));
+  $('pairings-next').setAttribute('aria-label', t(isStandings ? 'Next standings page' : 'Next pairings page'));
+  const rows = page.matches.map((entry) => {
+    const row = document.createElement('tr');
+    const stats = entry.stats;
+    const percent = (value) => value === null || value === undefined ? '—' : new Intl.NumberFormat(preferences.language === 'sk' ? 'sk-SK' : 'en-GB', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    const values = isStandings
+      ? [entry.place ?? '—', entry.player, stats ? `${stats.wins}–${stats.losses}–${stats.ties}` : '—', stats?.points ?? '—', percent(stats?.opWin), percent(stats?.opOpWin)]
+      : [entry.table, entry.player1, entry.player2 ?? t('BYE · No opponent')];
+    for (const value of values) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.append(cell);
+    }
+    if (isStandings && stats && (stats.byes || stats.pending)) {
+      const detail = document.createElement('span');
+      detail.className = 'record-detail';
+      detail.textContent = [stats.byes ? t('Byes: {count}', { count: stats.byes }) : '', stats.pending ? t('Pending: {count}', { count: stats.pending }) : ''].filter(Boolean).join(' · ');
+      row.children[2].append(detail);
+    }
+    return row;
+  });
+  $('pairings-rows').replaceChildren(...rows);
+  $('pairings-page').textContent = t('Page {page} / {count}', { page: page.index + 1, count: page.count });
+  $('pairings-previous').disabled = page.count === 1;
+  $('pairings-next').disabled = page.count === 1;
+  $('pairings-rotation').hidden = page.count === 1;
+  $('pairings-rotation').textContent = t(pairingsRotating ? 'Pause rotation' : 'Resume rotation');
+  $('pairings-rotation').setAttribute('aria-pressed', String(!pairingsRotating));
+  const time = pairings.importedAt ? new Intl.DateTimeFormat(preferences.language === 'sk' ? 'sk-SK' : 'en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).format(pairings.importedAt) : '—';
+  $('pairings-source').textContent = t('Local snapshot · imported {time}. Save and re-import after changes in TOM.', { time });
+}
+
+function renderPairings() {
+  $('pairings-options').hidden = !pairings;
+  const hasRounds = Boolean(pairings?.data.rounds.length);
+  $('pairings-open').hidden = !hasRounds;
+  $('tv-pairings').hidden = !hasRounds;
+  $('pairings-show').disabled = !hasRounds;
+  $('pairings-round').disabled = !hasRounds;
+  $('standings-open').hidden = !pairings;
+  $('tv-standings').hidden = !pairings;
+  $('pairings-round').replaceChildren();
+  $('standings-group').replaceChildren();
+  if (!pairings) {
+    for (const id of ['pairings-heading', 'pairings-event', 'pairings-warning', 'pairings-rows', 'pairings-page', 'pairings-source', 'standings-import-status', 'tom-empty']) $(id).replaceChildren();
+    $('pairings-import-status').textContent = t('No TOM file imported. Maximum file size: 5 MB.');
+    setPairingsVisible(false);
+    return;
+  }
+  if (!hasRounds) tomView = 'standings';
+  $('pairings-import-status').textContent = t('Loaded locally: {name}', { name: pairings.data.name });
+  for (const round of pairings.data.rounds) {
+    const option = document.createElement('option');
+    option.value = round.key;
+    option.textContent = pairingLabel(round);
+    $('pairings-round').append(option);
+  }
+  $('pairings-round').value = pairings.selectedKey;
+  for (const group of pairings.data.standings) {
+    const option = document.createElement('option');
+    option.value = group.key;
+    option.textContent = standingsLabel(group);
+    $('standings-group').append(option);
+  }
+  $('standings-group').value = pairings.selectedStandingsKey;
+  $('standings-group').disabled = !pairings.data.standings.length;
+  $('standings-import-status').textContent = t(pairings.data.standings.length ? 'Saved TOM rankings available. Re-import to update.' : 'No saved rankings in this file. Re-import after TOM saves standings, usually at the end of the event.');
+  renderTomViewButtons();
+  renderPairingsPage();
+  restartPairingsRotation();
+}
+
+async function importTomFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const sequence = ++importSequence;
+  $('pairings-import-status').textContent = t('Reading TOM file…');
+  try {
+    if (file.size > MAX_TOM_BYTES) throw new Error('TOM file is too large. Maximum file size: 5 MB.');
+    const data = parseTom(await file.text());
+    if (sequence !== importSequence) return;
+    const latestRound = data.rounds.at(-1);
+    const standingsGroup = data.standings.find((group) => group.division === latestRound?.division) || data.standings[0];
+    pairings = { data, selectedKey: latestRound?.key ?? null, selectedStandingsKey: standingsGroup?.key ?? null, importedAt: Date.now() };
+    pairingsPage = 0;
+    persistPairings();
+    renderPairings();
+  } catch (error) {
+    if (sequence === importSequence) $('pairings-import-status').textContent = t(error.message);
+  } finally {
+    // Release the raw File reference and allow choosing the same saved file again.
+    if (sequence === importSequence) event.target.value = '';
+  }
 }
 
 function announce(message) {
@@ -166,7 +367,7 @@ async function chime(kind, { preview = false } = {}) {
 
 async function syncWakeLock() {
   const isRunning = () => state.breakTimer ? state.breakTimer.running : state.running;
-  const needed = isRunning() && document.visibilityState === 'visible' && interacted;
+  const needed = (isRunning() || pairingsVisible) && document.visibilityState === 'visible' && interacted;
   if (!needed && wakeLock) {
     const lock = wakeLock;
     wakeLock = null;
@@ -177,7 +378,7 @@ async function syncWakeLock() {
       const lock = await wakeRequest;
       wakeLock = lock;
       lock.addEventListener('release', () => { if (wakeLock === lock) wakeLock = null; });
-      if (!isRunning() || document.visibilityState !== 'visible') {
+      if ((!isRunning() && !pairingsVisible) || document.visibilityState !== 'visible') {
         wakeLock = null;
         await lock.release().catch(() => {});
       }
@@ -258,6 +459,7 @@ function render(now = Date.now()) {
   $('round-minutes').min = FORMATS[state.format].minutes;
   $('round-length-help').textContent = t(state.started ? 'Reset the round before changing its length.' : 'Minimum {minutes} minutes for {format}; maximum 180.', { minutes: FORMATS[state.format].minutes, format: state.format.toUpperCase() });
   renderExtensions();
+  if (pairingsVisible) renderPairingsPage();
 }
 
 function renderExtensions() {
@@ -324,6 +526,7 @@ function startPause() {
   if (state.breakTimer ? state.breakTimer.complete : state.phase === 'complete') return;
   const next = toggleRunning(state);
   const running = next.breakTimer ? next.breakTimer.running : next.running;
+  if (running) setPairingsVisible(false);
   update(next, t(running ? ((state.breakTimer || state.started) ? 'Timer resumed.' : 'Round {round} started. {minutes} minutes.') : 'Timer paused.', { round: state.round, minutes: state.durationMs / 60000 }));
 }
 
@@ -385,7 +588,7 @@ async function toggleTv() {
   $('tv-toolbar').hidden = !tvMode;
   if (tvMode) {
     $('toast').hidden = true;
-    elements['time-display'].focus({ preventScroll: true });
+    (pairingsVisible ? $('pairings-heading') : elements['time-display']).focus({ preventScroll: true });
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       try { await document.documentElement.requestFullscreen(); } catch { toast(t('TV layout is on. Use your browser’s fullscreen option if needed.')); }
     }
@@ -410,6 +613,61 @@ function openSettings(section) {
 }
 
 $('settings-open').addEventListener('click', () => openSettings());
+function showTomView(view) {
+  $('settings-dialog').close();
+  if (tomView !== view) pairingsPage = 0;
+  tomView = view;
+  setPairingsVisible(true);
+  if (!tvMode) void toggleTv();
+}
+function toggleTomView(view) {
+  const hide = pairingsVisible && tomView === view;
+  if (tomView !== view) pairingsPage = 0;
+  tomView = view;
+  setPairingsVisible(!hide);
+}
+$('tom-file').addEventListener('change', importTomFile);
+$('pairings-show').addEventListener('click', () => showTomView('pairings'));
+$('pairings-open').addEventListener('click', () => showTomView('pairings'));
+$('standings-show').addEventListener('click', () => showTomView('standings'));
+$('standings-open').addEventListener('click', () => showTomView('standings'));
+$('pairings-back').addEventListener('click', () => setPairingsVisible(false));
+$('tv-pairings').addEventListener('click', () => toggleTomView('pairings'));
+$('tv-standings').addEventListener('click', () => toggleTomView('standings'));
+$('pairings-clear').addEventListener('click', () => {
+  importSequence += 1;
+  pairings = null;
+  persistPairings();
+  renderPairings();
+});
+$('pairings-round').addEventListener('change', (event) => {
+  if (!pairings) return;
+  pairings.selectedKey = event.target.value;
+  pairingsPage = 0;
+  persistPairings();
+  renderPairingsPage();
+  restartPairingsRotation();
+});
+$('standings-group').addEventListener('change', (event) => {
+  if (!pairings) return;
+  pairings.selectedStandingsKey = event.target.value;
+  pairingsPage = 0;
+  persistPairings();
+  renderPairingsPage();
+  restartPairingsRotation();
+});
+function changePairingsPage(offset) {
+  pairingsPage += offset;
+  renderPairingsPage();
+  restartPairingsRotation();
+}
+$('pairings-previous').addEventListener('click', () => changePairingsPage(-1));
+$('pairings-next').addEventListener('click', () => changePairingsPage(1));
+$('pairings-rotation').addEventListener('click', () => {
+  pairingsRotating = !pairingsRotating;
+  renderPairingsPage();
+  restartPairingsRotation();
+});
 $('settings-close').addEventListener('click', () => $('settings-dialog').close());
 $('break-open').addEventListener('click', () => openSettings('break'));
 $('language').addEventListener('change', (event) => {
@@ -467,8 +725,12 @@ $('show-extensions').addEventListener('change', (event) => {
   renderExtensions();
 });
 $('new-tournament').addEventListener('click', () => {
-  askConfirmation('Start a new tournament?', 'This resets to round 1 and clears the current timer, break, and table extensions. Language, volume, and the selected match length are kept.', 'New tournament', () => {
+  askConfirmation('Start a new tournament?', 'This resets to round 1 and clears the timer, break, table extensions, and TOM import. Language, volume, and the selected match length are kept.', 'New tournament', () => {
     stopSounds();
+    importSequence += 1;
+    pairings = null;
+    persistPairings();
+    renderPairings();
     update(newTimer(state.format, 1, state.durationMs / 60000), t('New tournament ready. Round 1.'));
     $('settings-dialog').close();
   });
@@ -504,6 +766,9 @@ document.addEventListener('keydown', (event) => {
   if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
   const key = event.key.toLowerCase();
   if (key === 'f') { event.preventDefault(); void toggleTv(); }
+  else if (key === 'p' && pairings?.data.rounds.length) { event.preventDefault(); toggleTomView('pairings'); }
+  else if (key === 's' && pairings) { event.preventDefault(); toggleTomView('standings'); }
+  else if (pairingsVisible && ['arrowleft', 'arrowright'].includes(key)) { event.preventDefault(); changePairingsPage(key === 'arrowright' ? 1 : -1); }
   else if (key === 'escape' && tvMode) { event.preventDefault(); void toggleTv(); }
   else if (key === 'r') { event.preventDefault(); resetRound(); }
   else if ((event.code === 'Space' || key === 'enter') && !event.target.closest('button, a')) {
@@ -534,6 +799,11 @@ window.addEventListener('storage', (event) => {
   } else if (event.key === PREFERENCES_KEY) {
     preferences = restorePreferences(event.newValue);
     applyPreferences();
+  } else if (event.key === PAIRINGS_KEY) {
+    importSequence += 1;
+    pairings = restorePairings(event.newValue);
+    pairingsPage = 0;
+    renderPairings();
   }
 });
 // A click after a restored session unlocks browser audio and the screen wake lock.

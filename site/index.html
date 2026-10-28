@@ -9,8 +9,8 @@
     <link rel="icon" href="./brand/kraken-favicon.png" type="image/png" />
     <link rel="preload" href="./brand/kraken-cards-logo.webp" as="image" />
     <link rel="preload" href="./fonts/barlow-condensed-600.ttf" as="font" type="font/ttf" crossorigin />
-    <link rel="stylesheet" href="./styles.css?v=2" />
-    <script type="module" src="./app.js?v=3"></script>
+    <link rel="stylesheet" href="./styles.css?v=5" />
+    <script type="module" src="./app.js?v=6"></script>
   </head>
   <body>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -80,16 +80,26 @@
 
         <div class="below-controls" id="round-footnote"><svg class="icon"><use href="#i-clock"/></svg><span><span data-i18n>Time called? Overtime starts automatically.</span> <strong data-i18n>15 minutes · +3 turns</strong></span></div>
         <aside class="extensions-summary" id="extensions-summary" aria-label="Table extensions" data-i18n-aria hidden><span class="extensions-eyebrow" data-i18n>JUDGE-GRANTED EXTENSIONS</span><div id="extensions-chips"></div></aside>
+        <section class="pairings-stage" id="pairings-stage" aria-labelledby="pairings-heading" hidden>
+          <header class="pairings-header"><span class="dialog-eyebrow" id="tom-view-eyebrow"></span><h1 id="pairings-heading" tabindex="-1"></h1><p id="pairings-event"></p></header>
+          <p class="pairings-warning" id="pairings-warning" role="status" hidden></p>
+          <p class="tom-empty" id="tom-empty" role="status" hidden></p>
+          <table class="pairings-table" id="tom-table"><caption class="sr-only" id="tom-table-caption"></caption><thead><tr><th scope="col" id="tom-column-first"></th><th scope="col" id="tom-column-second"></th><th scope="col" id="tom-column-third"></th><th scope="col" id="standings-column-points" hidden></th><th scope="col" id="standings-column-op-win" hidden></th><th scope="col" id="standings-column-op-op-win" hidden></th></tr></thead><tbody id="pairings-rows"></tbody></table>
+          <div class="pairings-navigation" id="pairings-navigation"><button class="icon-button" id="pairings-previous" aria-label="Previous pairings page">←</button><span id="pairings-page" role="status"></span><button class="icon-button" id="pairings-next" aria-label="Next pairings page">→</button><button class="button button-subtle" id="pairings-rotation"></button></div>
+          <p class="standings-note" id="standings-note" data-i18n hidden>TOM ranks; calculated Swiss statistics from all saved Swiss results, not the selected pairing round. Verify figures in TOM; — = unavailable.</p>
+          <p class="pairings-source" id="pairings-source"></p>
+          <button class="button button-subtle" id="pairings-back" data-i18n>Show timer</button>
+        </section>
       </main>
 
       <footer class="footer">
         <a class="footer-note" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer"><span class="tiny-dot"></span><span data-i18n>Kraken Cards. Your locals, on the clock.</span></a>
-        <div class="footer-right"><span class="shortcut-hint"><kbd>SPACE</kbd> <span data-i18n>pause</span> <span class="hint-separator">/</span> <kbd>F</kbd> <span data-i18n>TV mode</span></span><button class="text-button" id="break-open"><svg class="icon"><use href="#i-clock"/></svg><span data-i18n>Break mode</span></button><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg><span data-i18n>Timing rules</span></button></div>
+        <div class="footer-right"><button class="text-button" id="pairings-open" data-i18n hidden>Show pairings</button><button class="text-button" id="standings-open" data-i18n hidden>Show standings</button><span class="shortcut-hint"><kbd>SPACE</kbd> <span data-i18n>pause</span> <span class="hint-separator">/</span> <kbd>F</kbd> <span data-i18n>TV mode</span></span><button class="text-button" id="break-open"><svg class="icon"><use href="#i-clock"/></svg><span data-i18n>Break mode</span></button><button class="text-button" id="rules-open"><svg class="icon"><use href="#i-info"/></svg><span data-i18n>Timing rules</span></button></div>
       </footer>
     </div>
 
     <a class="tv-brand" href="https://krakencards.eu/" target="_blank" rel="noopener noreferrer" aria-label="Kraken Cards store — TV branding (opens in a new tab)" data-i18n-aria><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520" /></a>
-    <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> <span data-i18n>start / pause</span></span><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg><span data-i18n>Exit TV mode</span> <kbd>F</kbd></button></div>
+    <div class="tv-toolbar" id="tv-toolbar" hidden><span><kbd>SPACE</kbd> <span data-i18n>start / pause</span></span><button class="text-button" id="tv-pairings" hidden></button><button class="text-button" id="tv-standings" hidden></button><button class="text-button" id="tv-exit"><svg class="icon"><use href="#i-expand"/></svg><span data-i18n>Exit TV mode</span> <kbd>F</kbd></button></div>
     <div class="toast" role="status" id="toast" hidden></div>
 
     <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
@@ -105,6 +115,18 @@
       <div class="dialog-header"><span class="dialog-eyebrow" data-i18n>JUDGE'S TABLE</span><button class="icon-button" id="settings-close" aria-label="Close judge controls" data-i18n-aria><svg class="icon"><use href="#i-close"/></svg></button></div>
       <h2 id="settings-title" data-i18n>Judge controls</h2>
       <p id="settings-status" class="settings-status" role="status" hidden></p>
+      <section class="settings-section" id="pairings-settings">
+        <h3 data-i18n>TOM pairings &amp; standings</h3>
+        <p class="field-help" data-i18n>Save in TOM, then select the .tdf file. Display names, pairings, TOM ranks, and calculated Swiss statistics stay in this browser; nothing is uploaded. Importing never changes the timer.</p>
+        <div class="field"><label for="tom-file" data-i18n>Import TOM file (.tdf)</label><input id="tom-file" type="file" accept=".tdf,.xml" /></div>
+        <p class="field-help" id="pairings-import-status" role="status"></p>
+        <div id="pairings-options" hidden>
+          <div class="field"><label for="pairings-round" data-i18n>Pairings round / division</label><select id="pairings-round"></select></div>
+          <div class="field standings-field"><label for="standings-group" data-i18n>Standings division / group</label><select id="standings-group"></select></div>
+          <p class="field-help" id="standings-import-status" role="status"></p>
+          <div class="pairings-actions"><button class="button button-subtle" id="pairings-show" data-i18n>Show pairings</button><button class="button button-subtle" id="standings-show" data-i18n>Show standings</button><button class="text-button" id="pairings-clear" data-i18n>Clear TOM import</button></div>
+        </div>
+      </section>
       <section class="settings-section">
         <h3 data-i18n>Sound &amp; language</h3>
         <div class="settings-grid"><div class="field"><label for="language" data-i18n>Language</label><select id="language"><option value="en">English</option><option value="sk">Slovenčina</option></select></div><button class="button button-subtle" id="test-sound"><svg class="icon"><use href="#i-sound"/></svg><span data-i18n>Test sound</span></button></div>
