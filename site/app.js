@@ -1,7 +1,8 @@
 import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, remaining, toggleRunning, formatTime, restoreTimer } from './timer.js?v=2';
 import { restorePreferences } from './preferences.js?v=2';
-import { translate } from './i18n.js?v=6';
+import { translate } from './i18n.js?v=7';
 import { MAX_TOM_BYTES, PAIRINGS_PER_PAGE, ROTATION_MS, parseTom, restorePairings, pairingPage } from './pairings.js?v=3';
+import { createLearnPresentation } from './learn.js?v=10';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
@@ -47,6 +48,17 @@ let previousFocus;
 let toastTimeout;
 let lastDisplay = '';
 let lastView = '';
+const learnPresentation = createLearnPresentation({
+  getLanguage: () => preferences.language,
+  onLanguageChange: (language) => {
+    preferences.language = language;
+    savePreferences();
+    applyPreferences();
+  },
+  onOpen: () => setPairingsVisible(false),
+  onVisibilityChange: () => { void syncWakeLock(); },
+  onFullscreen: toggleTv,
+});
 
 function persist() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* Timer also works without storage. */ }
@@ -80,6 +92,7 @@ function applyPreferences() {
   renderSound();
   renderLocalTime();
   renderPairings();
+  learnPresentation.refresh();
   tick();
 }
 
@@ -367,7 +380,7 @@ async function chime(kind, { preview = false } = {}) {
 
 async function syncWakeLock() {
   const isRunning = () => state.breakTimer ? state.breakTimer.running : state.running;
-  const needed = (isRunning() || pairingsVisible) && document.visibilityState === 'visible' && interacted;
+  const needed = (isRunning() || pairingsVisible || learnPresentation.isOpen) && document.visibilityState === 'visible' && interacted;
   if (!needed && wakeLock) {
     const lock = wakeLock;
     wakeLock = null;
@@ -378,7 +391,7 @@ async function syncWakeLock() {
       const lock = await wakeRequest;
       wakeLock = lock;
       lock.addEventListener('release', () => { if (wakeLock === lock) wakeLock = null; });
-      if ((!isRunning() && !pairingsVisible) || document.visibilityState !== 'visible') {
+      if ((!isRunning() && !pairingsVisible && !learnPresentation.isOpen) || document.visibilityState !== 'visible') {
         wakeLock = null;
         await lock.release().catch(() => {});
       }
@@ -588,7 +601,8 @@ async function toggleTv() {
   $('tv-toolbar').hidden = !tvMode;
   if (tvMode) {
     $('toast').hidden = true;
-    (pairingsVisible ? $('pairings-heading') : elements['time-display']).focus({ preventScroll: true });
+    if (learnPresentation.isOpen) learnPresentation.focus();
+    else (pairingsVisible ? $('pairings-heading') : elements['time-display']).focus({ preventScroll: true });
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       try { await document.documentElement.requestFullscreen(); } catch { toast(t('TV layout is on. Use your browser’s fullscreen option if needed.')); }
     }
@@ -596,7 +610,8 @@ async function toggleTv() {
     if (document.fullscreenElement) {
       try { await document.exitFullscreen(); } catch { /* TV layout still exits. */ }
     }
-    $('tv-toggle').focus({ preventScroll: true });
+    if (learnPresentation.isOpen) learnPresentation.focus();
+    else $('tv-toggle').focus({ preventScroll: true });
   }
 }
 
@@ -750,6 +765,8 @@ $('rules-open').addEventListener('click', () => elements['rules-dialog'].showMod
 $('rules-close').addEventListener('click', () => elements['rules-dialog'].close());
 $('tv-toggle').addEventListener('click', toggleTv);
 $('tv-exit').addEventListener('click', toggleTv);
+$('learn-open').addEventListener('click', () => learnPresentation.open());
+$('tv-learn').addEventListener('click', () => learnPresentation.open());
 elements['sound-toggle'].addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   try { localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off'); } catch { /* Optional preference. */ }
@@ -782,7 +799,8 @@ document.addEventListener('fullscreenchange', () => {
     tvMode = false;
     document.body.classList.remove('tv-mode');
     $('tv-toolbar').hidden = true;
-    $('tv-toggle').focus({ preventScroll: true });
+    if (learnPresentation.isOpen) learnPresentation.focus();
+    else $('tv-toggle').focus({ preventScroll: true });
   }
 });
 document.addEventListener('visibilitychange', () => { tick(); void syncWakeLock(); });

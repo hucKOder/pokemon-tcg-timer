@@ -1,4 +1,5 @@
 const sk = {
+  'Learn to play': 'Ako hrať',
   'LOCAL ROUND TIMER': 'ČASOMIERA TURNAJA',
   'Kraken Cards store (opens in a new tab)': 'Obchod Kraken Cards (otvorí sa na novej karte)',
   'Kraken Cards store — TV branding (opens in a new tab)': 'Obchod Kraken Cards — TV logo (otvorí sa na novej karte)',
