@@ -1,5 +1,7 @@
 # Learning guide card images
 
+`learn-qr.svg` is a locally generated QR code for `https://huckoder.github.io/pokemon-tcg-timer/#learn`. The `#learn` link opens the presentation directly. Regenerate it with `qrencode -t SVG --svg-path -l M -m 4 -s 8 -o site/learn/learn-qr.svg 'https://huckoder.github.io/pokemon-tcg-timer/#learn'`. The SVG includes a white four-module quiet zone and does not contact an external QR provider.
+
 The guide uses actual Pokémon TCG cards, hosted locally so an already-loaded presentation does not depend on a third-party card service.
 
 Images refreshed on November 4, 2026. Pokémon and Trainer examples come from 2026 expansions; the Basic Energy uses the 2025 Mega Evolution design. The selected card's name, expansion, and year appear beside its explanation.

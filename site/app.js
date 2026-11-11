@@ -1,8 +1,8 @@
 import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, remaining, toggleRunning, formatTime, restoreTimer } from './timer.js?v=2';
 import { restorePreferences } from './preferences.js?v=2';
-import { translate } from './i18n.js?v=7';
+import { translate } from './i18n.js?v=8';
 import { MAX_TOM_BYTES, PAIRINGS_PER_PAGE, ROTATION_MS, parseTom, restorePairings, pairingPage } from './pairings.js?v=3';
-import { createLearnPresentation } from './learn.js?v=10';
+import { createLearnPresentation } from './learn.js?v=11';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
@@ -56,6 +56,13 @@ const learnPresentation = createLearnPresentation({
     applyPreferences();
   },
   onOpen: () => setPairingsVisible(false),
+  onClose: () => {
+    if (location.hash === '#learn') {
+      const url = new URL(location.href);
+      url.hash = '';
+      history.replaceState(history.state, '', url);
+    }
+  },
   onVisibilityChange: () => { void syncWakeLock(); },
   onFullscreen: toggleTv,
 });
@@ -86,6 +93,7 @@ function applyPreferences() {
   $('volume').value = Math.round(preferences.volume * 100);
   $('volume-value').textContent = `${Math.round(preferences.volume * 100)}%`;
   $('show-extensions').checked = preferences.showExtensions;
+  $('learn-share-code').alt = t('QR code for the learning guide');
   if (masterVolume) masterVolume.gain.setValueAtTime(preferences.volume, audio.currentTime);
   lastView = '';
   lastDisplay = '';
@@ -767,6 +775,15 @@ $('tv-toggle').addEventListener('click', toggleTv);
 $('tv-exit').addEventListener('click', toggleTv);
 $('learn-open').addEventListener('click', () => learnPresentation.open());
 $('tv-learn').addEventListener('click', () => learnPresentation.open());
+let learnShareOpener;
+for (const id of ['learn-share-open', 'learn-qr-open']) $(id).addEventListener('click', () => {
+  learnShareOpener = document.activeElement;
+  $('learn-share-dialog').showModal();
+});
+$('learn-share-close').addEventListener('click', () => $('learn-share-dialog').close());
+$('learn-share-dialog').addEventListener('close', () => {
+  if (learnShareOpener?.checkVisibility()) learnShareOpener.focus({ preventScroll: true });
+});
 elements['sound-toggle'].addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   try { localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off'); } catch { /* Optional preference. */ }
@@ -831,5 +848,10 @@ function renderLocalTime() {
 }
 
 applyPreferences();
+function openLearnFromLink() {
+  if (location.hash === '#learn') learnPresentation.open();
+}
+window.addEventListener('hashchange', openLearnFromLink);
+openLearnFromLink();
 setInterval(tick, 100);
 setInterval(renderLocalTime, 10000);

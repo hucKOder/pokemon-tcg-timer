@@ -12,7 +12,7 @@ const CARD_EDITIONS = {
 };
 
 // This presentation has its own, per-window state. It never writes timer state.
-export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen, onVisibilityChange, onFullscreen }) {
+export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen, onClose = () => {}, onVisibilityChange, onFullscreen }) {
   const dialog = document.createElement('dialog');
   dialog.id = 'learn-dialog';
   dialog.className = 'learn-dialog';
@@ -465,6 +465,7 @@ export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen,
     stopSimulationClock();
     cancelSimulationAnimations();
     document.body.classList.remove('learn-presenting');
+    onClose();
     onVisibilityChange();
     if (opener?.checkVisibility()) opener.focus({ preventScroll: true });
   });
