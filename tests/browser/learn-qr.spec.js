@@ -132,6 +132,9 @@ for (const [width, height] of [[320, 740], [1366, 768], [1920, 1080]]) {
         const codeBounds = await qr.boundingBox();
         const contentBounds = await slide.boundingBox();
         expect(codeBounds.y + codeBounds.height).toBeLessThanOrEqual(contentBounds.y);
+        const imageBounds = await qr.locator('img').boundingBox();
+        expect(imageBounds.width).toBe(width >= 1600 ? 164 : 123);
+        expect(imageBounds.x + imageBounds.width).toBeGreaterThan(width - 45);
         expect(await page.locator('.learn-header').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
       }
     }

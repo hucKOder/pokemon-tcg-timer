@@ -2,7 +2,7 @@ import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, rema
 import { restorePreferences } from './preferences.js?v=2';
 import { translate } from './i18n.js?v=8';
 import { MAX_TOM_BYTES, PAIRINGS_PER_PAGE, ROTATION_MS, parseTom, restorePairings, pairingPage } from './pairings.js?v=3';
-import { createLearnPresentation } from './learn.js?v=12';
+import { createLearnPresentation } from './learn.js?v=13';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
