@@ -6,12 +6,17 @@ body.learn-presenting{overflow:hidden}
 .learn-dialog button:focus-visible,.learn-dialog a:focus-visible{outline:3px solid var(--learn-gold);outline-offset:4px}
 .learn-dialog h1:focus{outline:none}
 .learn-shell{height:100%;overflow:hidden;display:flex;flex-direction:column;width:min(100% - 80px,1800px);margin:auto}
-.learn-header{height:91px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #ffffff19}
+.learn-header{height:91px;min-height:87px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #ffffff19}
 .learn-brand{display:flex;align-items:center;gap:18px}
 .learn-brand>img{width:69px;height:51px;object-fit:contain;background:#f3f7ff;border-radius:9px;padding:4px}
 .learn-brand>span{padding-left:18px;border-left:1px solid #ffffff26}
 .learn-brand b{display:block;font-size:17px;letter-spacing:-.5px}
 .learn-brand>span>span{display:block;color:var(--learn-muted);letter-spacing:1.8px;font-size:8px;margin-top:5px}
+.learn-guide-qr{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:0;border:0;border-radius:6px;background:transparent;color:var(--learn-ink);text-align:left}
+.learn-guide-qr img{display:block;flex-shrink:0;width:82px;height:82px;border-radius:6px;background:#fff}
+.learn-guide-qr>span{max-width:90px;font-size:12px;font-weight:600;line-height:1.4}
+@media(max-width:1100px){.learn-guide-qr>span{display:none}}
+@media(max-width:760px){.learn-brand>span{display:none}}
 .learn-header-actions{display:flex;align-items:center;gap:12px}
 .learn-header-actions button{border:1px solid #ffffff24;color:var(--learn-ink);background:#ffffff06;border-radius:8px;min-height:40px}
 .learn-language{font-size:10px;font-weight:700;letter-spacing:1px;padding:0 12px}
@@ -149,7 +154,7 @@ button.learn-zone:hover{background:#ffffff0d;border-color:#ffcf4a99}
   :is(.tv-mode,:fullscreen) .learn-shell{width:calc(100% - 40px)}
   :is(.tv-mode,:fullscreen) .learn-header{height:56px}
   :is(.tv-mode,:fullscreen) .learn-brand>img{width:56px;height:41px}
-  :is(.tv-mode,:fullscreen) .learn-footer{height:60px}
+  :is(.tv-mode,:fullscreen) .learn-footer{height:50px}
   :is(.tv-mode,:fullscreen) .learn-bottom-note{font-size:7px;padding-bottom:6px}
 }
 /* Readable lesson copy, including on smaller screens. */

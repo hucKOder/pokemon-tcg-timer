@@ -31,7 +31,7 @@ Use **← / →**, **Page Up / Page Down**, the progress bar, or **Next** to nav
 
 Opening the guide leaves a running round or break counting down, with alerts still enabled according to your sound setting. Presentation keys do not operate the timer, and its board interactions are examples only. Slide selection stays in the current window; it is not synchronized to other windows. Card images are self-hosted and include attribution in `site/learn/README.md`. The guide requests a screen wake lock while open when the browser permits it.
 
-The **Scan to learn** QR code appears in the corner of the TV timer. Click it, or use **Learning QR code** in the normal footer, for a larger code and a download for printing. It links to **[the learning guide directly](https://huckoder.github.io/pokemon-tcg-timer/#learn)**, which opens automatically on the visitor’s phone using their saved English / Slovak preference. Closing the guide returns to the timer and removes the learning fragment from the address. The QR image is hosted locally and uses no external QR service.
+The **Scan to learn** QR code appears in the corner of the TV timer and in the header of every learning slide, including the animated battle. It stays visible while scrolling the guide. Click it, or use **Learning QR code** in the normal footer, for a larger code and a download for printing. It links to **[the learning guide directly](https://huckoder.github.io/pokemon-tcg-timer/#learn)**, which opens automatically on the visitor’s phone using their saved English / Slovak preference. Closing the guide returns to the timer and removes the learning fragment from the address. The QR image is hosted locally and uses no external QR service.
 
 ### Judge controls
 

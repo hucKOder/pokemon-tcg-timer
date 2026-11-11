@@ -112,3 +112,38 @@ test('QR dialog fits a small phone and opens the guide with one tap', async ({ p
   expect((await new AxeBuilder({ page }).include('#learn-share-dialog').analyze()).violations).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('mobile-learning-qr.png') });
 });
+
+for (const [width, height] of [[320, 740], [1366, 768], [1920, 1080]]) {
+  test(`guide QR stays visible across all sections at ${width} × ${height}`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height });
+    if (width > 900) await page.getByRole('button', { name: 'TV mode', exact: true }).click();
+    await page.locator(width > 900 ? '#tv-learn' : '#learn-open').click();
+    const qr = page.locator('.learn-guide-qr');
+    const slide = page.locator('.learn-slide');
+    for (const language of ['en', 'sk']) {
+      if (language === 'sk') await page.locator('[data-language]').click();
+      await expect(qr).toHaveAccessibleName(language === 'en' ? 'Scan to learn: show QR code' : 'Naskenuj návod: zobraziť QR kód');
+      for (let index = 0; index < 8; index++) {
+        await page.locator(`[data-slide-to="${index}"]`).click();
+        await expect(slide).toHaveAttribute('data-slide', String(index));
+        await expect(qr).toBeInViewport({ ratio: 1 });
+        await slide.evaluate(element => { element.scrollTop = element.scrollHeight; });
+        await expect(qr).toBeInViewport({ ratio: 1 });
+        const codeBounds = await qr.boundingBox();
+        const contentBounds = await slide.boundingBox();
+        expect(codeBounds.y + codeBounds.height).toBeLessThanOrEqual(contentBounds.y);
+        expect(await page.locator('.learn-header').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+      }
+    }
+    await page.clock.fastForward(15000);
+    await expect(qr).toBeInViewport({ ratio: 1 });
+    await qr.locator('img').screenshot({ path: testInfo.outputPath('guide-learning-qr.png') });
+    await page.screenshot({ path: testInfo.outputPath('guide-with-qr.png') });
+    await qr.click();
+    await expect(page.locator('#learn-share-dialog')).toBeVisible();
+    await page.locator('#learn-share-close').click();
+    await expect(qr).toBeFocused();
+    await expect(slide).toHaveAttribute('data-slide', '7');
+    await expect(page.locator('#learn-dialog')).toBeVisible();
+  });
+}

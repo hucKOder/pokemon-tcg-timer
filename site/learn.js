@@ -12,7 +12,7 @@ const CARD_EDITIONS = {
 };
 
 // This presentation has its own, per-window state. It never writes timer state.
-export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen, onClose = () => {}, onVisibilityChange, onFullscreen }) {
+export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen, onClose = () => {}, onVisibilityChange, onFullscreen, onShare }) {
   const dialog = document.createElement('dialog');
   dialog.id = 'learn-dialog';
   dialog.className = 'learn-dialog';
@@ -371,7 +371,11 @@ export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen,
     const isLast = slide === total - 1;
     dialog.lang = getLanguage();
     dialog.innerHTML = `<div class="learn-shell">
-      <header class="learn-header"><div class="learn-brand"><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520"><span><b>Pokémon TCG</b><span>${l('A QUICK START GUIDE', 'STRUČNÝ SPRIEVODCA HROU')}</span></span></div><div class="learn-header-actions"><button type="button" class="learn-language" data-language aria-label="${l('EN / SK: Switch to Slovak', 'SK / EN: Prepnúť na angličtinu')}">${getLanguage() === 'sk' ? 'SK / EN' : 'EN / SK'}</button><button type="button" class="learn-fullscreen" data-fullscreen aria-label="${l('Toggle fullscreen', 'Prepnúť celú obrazovku')}" title="${l('Fullscreen (F)', 'Celá obrazovka (F)')}"><svg class="icon"><use href="#i-expand"/></svg></button><button type="button" class="learn-close" data-close aria-label="${l('Back to timer', 'Späť na časomieru')}"><span>${l('Back to timer', 'Späť na časomieru')}</span><svg class="icon"><use href="#i-close"/></svg></button></div></header>
+      <header class="learn-header">
+        <div class="learn-brand"><img src="./brand/kraken-cards-logo.webp" alt="Kraken Cards" width="709" height="520"><span><b>Pokémon TCG</b><span>${l('A QUICK START GUIDE', 'STRUČNÝ SPRIEVODCA HROU')}</span></span></div>
+        <button type="button" class="learn-guide-qr" data-share aria-label="${l('Scan to learn: show QR code', 'Naskenuj návod: zobraziť QR kód')}"><img src="./learn/learn-qr.svg" alt="" width="82" height="82"><span>${l('Scan to learn', 'Naskenuj návod')}</span></button>
+        <div class="learn-header-actions"><button type="button" class="learn-language" data-language aria-label="${l('EN / SK: Switch to Slovak', 'SK / EN: Prepnúť na angličtinu')}">${getLanguage() === 'sk' ? 'SK / EN' : 'EN / SK'}</button><button type="button" class="learn-fullscreen" data-fullscreen aria-label="${l('Toggle fullscreen', 'Prepnúť celú obrazovku')}" title="${l('Fullscreen (F)', 'Celá obrazovka (F)')}"><svg class="icon"><use href="#i-expand"/></svg></button><button type="button" class="learn-close" data-close aria-label="${l('Back to timer', 'Späť na časomieru')}"><span>${l('Back to timer', 'Späť na časomieru')}</span><svg class="icon"><use href="#i-close"/></svg></button></div>
+      </header>
       <div class="learn-slide ${animate ? 'learn-slide-enter' : ''}" data-slide="${slide}">
         <div class="learn-narrative"><div class="learn-summary"><p class="learn-eyebrow"><span class="learn-step-number">0${slide + 1}</span> ${names()[slide]}</p><h1 id="learn-title" tabindex="-1">${content.title.replace('\n', '<br> ')}</h1><p class="learn-intro">${content.description}</p></div><div class="learn-explanation">${narrative()}${detail()}</div></div>
         <div class="learn-visual"><div class="learn-visual-label"><span class="learn-live-dot"></span>${content.hint}<span>POKÉMON TCG</span></div>${visual(animateEvolution)}</div>
@@ -411,6 +415,7 @@ export function createLearnPresentation({ getLanguage, onLanguageChange, onOpen,
     if (button.hasAttribute('data-close')) dialog.close();
     else if (button.hasAttribute('data-language')) onLanguageChange(getLanguage() === 'en' ? 'sk' : 'en');
     else if (button.hasAttribute('data-fullscreen')) void onFullscreen();
+    else if (button.hasAttribute('data-share')) onShare();
     else if (button.hasAttribute('data-next')) goTo(slide + 1);
     else if (button.hasAttribute('data-previous')) goTo(slide - 1);
     else if (button.hasAttribute('data-restart')) goTo(0);

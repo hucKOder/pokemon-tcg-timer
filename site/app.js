@@ -2,7 +2,7 @@ import { FORMATS, OVERTIME_MS, newTimer, beginBreak, setExtension, advance, rema
 import { restorePreferences } from './preferences.js?v=2';
 import { translate } from './i18n.js?v=8';
 import { MAX_TOM_BYTES, PAIRINGS_PER_PAGE, ROTATION_MS, parseTom, restorePairings, pairingPage } from './pairings.js?v=3';
-import { createLearnPresentation } from './learn.js?v=11';
+import { createLearnPresentation } from './learn.js?v=12';
 
 const STORAGE_KEY = 'locals-tcg-timer-v1';
 const SOUND_KEY = 'locals-tcg-sound-v1';
@@ -65,6 +65,7 @@ const learnPresentation = createLearnPresentation({
   },
   onVisibilityChange: () => { void syncWakeLock(); },
   onFullscreen: toggleTv,
+  onShare: openLearningQR,
 });
 
 function persist() {
@@ -776,10 +777,11 @@ $('tv-exit').addEventListener('click', toggleTv);
 $('learn-open').addEventListener('click', () => learnPresentation.open());
 $('tv-learn').addEventListener('click', () => learnPresentation.open());
 let learnShareOpener;
-for (const id of ['learn-share-open', 'learn-qr-open']) $(id).addEventListener('click', () => {
+function openLearningQR() {
   learnShareOpener = document.activeElement;
   $('learn-share-dialog').showModal();
-});
+}
+for (const id of ['learn-share-open', 'learn-qr-open']) $(id).addEventListener('click', openLearningQR);
 $('learn-share-close').addEventListener('click', () => $('learn-share-dialog').close());
 $('learn-share-dialog').addEventListener('close', () => {
   if (learnShareOpener?.checkVisibility()) learnShareOpener.focus({ preventScroll: true });
